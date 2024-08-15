@@ -4,32 +4,52 @@ export default function Home() {
   const [data, setData] = useState([]);
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    const response = await fetch('/api/data');
-    const result = await response.json();
-    setData(result);
+    try {
+      const response = await fetch('/api/data');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      console.log('Fetched data:', result);
+      setData(result);
+    } catch (e) {
+      console.error('Error fetching data:', e);
+      setError('Failed to fetch data. Please check the console for more details.');
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await fetch('/api/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: newKey, value: newValue }),
-    });
-    setNewKey('');
-    setNewValue('');
-    fetchData();
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: newKey, value: newValue }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      console.log('Data added successfully');
+      setNewKey('');
+      setNewValue('');
+      fetchData();
+    } catch (e) {
+      console.error('Error adding data:', e);
+      setError('Failed to add data. Please check the console for more details.');
+    }
   };
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">רשימת פריטים</h1>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
       <ul className="mb-4">
         {data.map((item, index) => (
           <li key={index} className="mb-2">
