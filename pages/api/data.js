@@ -1,14 +1,13 @@
 export default async function handler(req, res) {
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcLug_IKOMlSlUjoe-fytNBLtUiQnKPsCxwkYHfPZphfxJal4Ydddeg1wJ_lilUo4l/exec';
 
-  console.log('Received request:', req.method);
-
   if (req.method === 'GET') {
     try {
-      console.log('Fetching data from:', SCRIPT_URL);
       const response = await fetch(SCRIPT_URL);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      console.log('Received data:', data);
       res.status(200).json(data);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -16,18 +15,18 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     try {
-      const { key, value } = req.body;
-      console.log('Posting data:', { key, value });
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
-        body: JSON.stringify({ key, value }),
+        body: JSON.stringify(req.body),
       });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const result = await response.json();
-      console.log('Received response:', result);
       res.status(200).json(result);
     } catch (error) {
-      console.error('Error posting data:', error);
-      res.status(500).json({ error: 'Failed to post data' });
+      console.error('Error processing data:', error);
+      res.status(500).json({ error: 'Failed to process data' });
     }
   } else {
     res.setHeader('Allow', ['GET', 'POST']);
